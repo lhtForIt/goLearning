@@ -1,18 +1,25 @@
 # 多阶段构建会比直接构建包体积小很多
 FROM golang:1.17 AS builder
 
-ENV GO111MODULE=off \	
+ENV GO111MODULE=on \	
     CGO_ENABLED=0 \
     GOOS=linux \	
-    GOARCH=amd64
+    GOARCH=amd64 \
+    GOPROXY=https://goproxy.cn,direct
 
-WORKDIR /build
+WORKDIR /leo
 
+# COPY go.mod ./
+# COPY go.sum ./
+# RUN go mod download
+
+# COPY *.go ./
+# RUN go build -o httpserver .
 COPY . .
-RUN go get -d -v github.com/golang/glog && go build -o httpserver .
+RUN go build -o httpserver .
 
 FROM scratch
-COPY --from=builder /build/httpserver /
+COPY --from=builder /leo/httpserver /
 
 EXPOSE 8080
 ENTRYPOINT ["/httpserver"]
